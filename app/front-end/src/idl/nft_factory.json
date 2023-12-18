@@ -1,0 +1,158 @@
+{
+  "version": "0.1.0",
+  "name": "nft_factory",
+  "instructions": [
+    {
+      "name": "createNft",
+      "accounts": [
+        {
+          "name": "nft",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "props",
+          "type": {
+            "defined": "NftProperties"
+          }
+        },
+        {
+          "name": "startingPrice",
+          "type": "f64"
+        },
+        {
+          "name": "nftImages",
+          "type": {
+            "vec": "string"
+          }
+        }
+      ]
+    },
+    {
+      "name": "createBid",
+      "accounts": [
+        {
+          "name": "nft",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "refundAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "quantity",
+          "type": "f64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "NftData",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ownerAddress",
+            "type": "publicKey"
+          },
+          {
+            "name": "props",
+            "type": {
+              "defined": "NftProperties"
+            }
+          },
+          {
+            "name": "startingPrice",
+            "type": "f64"
+          },
+          {
+            "name": "nftImages",
+            "type": {
+              "vec": "string"
+            }
+          },
+          {
+            "name": "bids",
+            "type": {
+              "vec": {
+                "defined": "Bid"
+              }
+            }
+          },
+          {
+            "name": "bidsSize",
+            "type": "u32"
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "NftProperties",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ownerFullName",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Bid",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "index",
+            "type": "u32"
+          },
+          {
+            "name": "bidder",
+            "type": "publicKey"
+          },
+          {
+            "name": "quantity",
+            "type": "f64"
+          },
+          {
+            "name": "isWithdrawn",
+            "type": "bool"
+          }
+        ]
+      }
+    }
+  ],
+  "metadata": {
+    "address" : "AvTZFahUT9JTG51LyFqHADr9CQ8yZsnh2E9WmGW4pP5r"
+  }
+}
