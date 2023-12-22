@@ -1,25 +1,16 @@
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::clock::Clock;
 
-
-declare_id!("AvTZFahUT9JTG51LyFqHADr9CQ8yZsnh2E9WmGW4pP5r");
+declare_id!("4vx3swKUwrx7T6NRKXkQfWjVJmAfjUsbsJdLj1GsoPY9");
 
 #[program]
 pub mod nft_factory {
     use super::*;
 
-    pub fn create_nft(
-        ctx: Context<CreateNft>,
-        props: NftProperties,
-        starting_price: f64,
-        nft_images: Vec<String>,
-    ) -> Result<()> {
+    pub fn create_nft(ctx: Context<CreateNft>, image_url: String) -> Result<()> {
         let nft = &mut ctx.accounts.nft;
-        let owner = &mut ctx.accounts.owner;
 
-        nft.owner_address = *owner.key;
-        nft.props = props;
-        nft.starting_price = starting_price;
-        nft.nft_images = nft_images;
+        nft.image_url = image_url;
         nft.bids = Vec::new();
         nft.bids_size = 0;
 
@@ -29,7 +20,11 @@ pub mod nft_factory {
     pub fn create_bid(ctx: Context<CreateBid>, quantity: f64) -> Result<()> {
         let nft = &mut ctx.accounts.nft;
         let bidder = &mut ctx.accounts.authority;
-        let refund_account = &mut ctx.accounts.refund_account;
+        let bids_size = nft.bids_size;
+
+        if bids_size > 0 && quantity <= nft.bids.last_mut().unwrap().quantity {
+            return err!(MyError::InvalidPrice);
+        }
 
         // Create the transfer instruction
         let transfer_instruction = anchor_lang::solana_program::system_instruction::transfer(
@@ -48,26 +43,12 @@ pub mod nft_factory {
             ],
         )?;
 
-        if let Some(last_bid) = nft.bids.last_mut() {
-            if !last_bid.is_withdrawn {
-                last_bid.is_withdrawn = true;
-
-                let quantity = last_bid.quantity;
-
-                **nft.to_account_info().try_borrow_mut_lamports()? -=
-                    (quantity * 1000000000.0) as u64;
-                **refund_account.to_account_info().try_borrow_mut_lamports()? +=
-                    (quantity * 1000000000.0) as u64;
-            }
-        }
-
-        let bids_size = nft.bids_size;
-
+        let clock = Clock::get()?;
         nft.bids.push(Bid {
             index: bids_size + 1,
             bidder: bidder.key(),
-            quantity: quantity,
-            is_withdrawn: false,
+            quantity,
+            datetime: clock.unix_timestamp,
         });
 
         nft.bids_size += 1;
@@ -94,34 +75,18 @@ pub struct CreateNft<'info> {
 
 #[derive(Accounts)]
 pub struct CreateBid<'info> {
-    #[account
-    (
-        mut,
-        constraint = authority.key() != nft.owner_address
-    )]
+    #[account(mut)]
     pub nft: Account<'info, NftData>,
     #[account(mut)]
     pub authority: Signer<'info>,
-    #[account(mut)]
-    /// CHECK:` doc comment explaining why no checks through types are necessary
-    pub refund_account: AccountInfo<'info>,
     pub system_program: Program<'info, System>,
 }
 
-
 #[account]
 pub struct NftData {
-    owner_address: Pubkey,
-    props: NftProperties,
-    starting_price: f64,
-    nft_images: Vec<String>,
+    image_url: String,
     bids: Vec<Bid>,
     bids_size: u32,
-}
-
-#[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize)]
-pub struct NftProperties {
-    owner_full_name: String,
 }
 
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize)]
@@ -129,5 +94,11 @@ pub struct Bid {
     index: u32,
     bidder: Pubkey,
     quantity: f64,
-    is_withdrawn: bool,
+    datetime: i64,
+}
+
+#[error_code]
+pub enum MyError {
+    #[msg("Price should be bigger than the last bid")]
+    InvalidPrice,
 }

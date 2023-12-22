@@ -5,13 +5,13 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-nft_factory = "AvTZFahUT9JTG51LyFqHADr9CQ8yZsnh2E9WmGW4pP5r"
+nft_factory = "4vx3swKUwrx7T6NRKXkQfWjVJmAfjUsbsJdLj1GsoPY9"
 
 [programs.devnet]
-nft_factory = "AvTZFahUT9JTG51LyFqHADr9CQ8yZsnh2E9WmGW4pP5r"
+nft_factory = "4vx3swKUwrx7T6NRKXkQfWjVJmAfjUsbsJdLj1GsoPY9"
 
 [programs.testnet]
-nft_factory = "AvTZFahUT9JTG51LyFqHADr9CQ8yZsnh2E9WmGW4pP5r"
+nft_factory = "4vx3swKUwrx7T6NRKXkQfWjVJmAfjUsbsJdLj1GsoPY9"
 
 [registry]
 url = "https://anchor.projectserum.com"
